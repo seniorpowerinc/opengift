@@ -1,0 +1,37 @@
+# .github/workflows/deploy.yml
+name: Deploy GitHub Pages
+
+# 只有手動（即 API）觸發
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'data.json'
+      - 'index.html'
+      - 'admin.html'
+      - 'pdfs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read       # 讓 checkout 用
+  pages: write         # 讓 deploy-pages 有寫入權限
+  id-token: write      # 部署過程需要
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v3
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
