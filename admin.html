@@ -221,11 +221,20 @@
   </div>
 
   <script>
-    const owner = 'henry0325';
-    const repo = 'giftcreation';
+    let owner = '';
+    let repo = '';
     const dataPath = 'data.json';
     let sha = '';
-
+    fetch(dataPath)
+      .then(res => res.json())
+      .then(data => {
+        owner = data.owner;
+        repo = data.repo;
+      })
+      .catch(err => {
+        alert('無法讀取 data.json 取得 repo 設定：' + err);
+        throw new Error('Missing repo info');
+      });
     function markStepDone(stepNumber) {
       document.getElementById('step' + stepNumber).classList.add('done');
       for (let i = 0; i < 4; i++) {
