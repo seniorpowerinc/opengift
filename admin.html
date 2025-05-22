@@ -171,7 +171,7 @@
   </style>
 </head>
 
-<body onload="markStepDone(0)">
+<body>
   <h1>管理禮物頁面</h1>
 
   <div class="progress" id="progressBar">
@@ -319,7 +319,7 @@
         lang: document.getElementById('lang').value,
         title: document.getElementById('title').value,
         subtitle: document.getElementById('subtitle').value,
-        pdf: document.getElementById('pdf').value
+        pdf: document.getElementById('pdf').value,
         owner: owner,
         repo: repo
       };
@@ -411,6 +411,10 @@
         .catch(err => console.error('查詢 run 狀態錯誤：', err));
       }, 4000);
     }
+    window.addEventListener('DOMContentLoaded', () => {
+  markStepDone(0);
+});
+
   </script>
 </body>
 </html>
