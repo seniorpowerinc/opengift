@@ -312,7 +312,15 @@
       reader.readAsDataURL(file);
     }
 
+    let isDeploying = false;
+
     function updateData() {
+      if (isDeploying) {
+        alert('部署中，請稍後再試。');
+        return;
+      }
+
+      isDeploying = true;
       const token = getToken();
       const payload = {
         pageTitle: document.getElementById('pageTitle').value,
@@ -336,9 +344,11 @@
         .then(() => {
           markStepDone(4);
           alert('資料更新成功，開始部署...');
-          triggerWorkflow(token);
+          return triggerWorkflow(token);
         })
-        .catch(err => alert(err));
+        .finally(() => {
+          isDeploying = false;
+        });
     }
 
     function triggerWorkflow(token) {
@@ -351,12 +361,12 @@
         },
         body: JSON.stringify({ ref: 'main' })
       })
-      .then(res => {
-        if (!res.ok) throw new Error('部署觸發失敗');
-        return res;
-      })
-      .then(() => waitForWorkflow(token))
-      .catch(err => alert('部署觸發失敗：' + err.message));
+        .then(res => {
+          if (!res.ok) throw new Error('部署觸發失敗');
+          return res;
+        })
+        .then(() => waitForWorkflow(token))
+        .catch(err => alert('部署觸發失敗：' + err.message));
     }
 
     function waitForWorkflow(token) {
@@ -369,18 +379,18 @@
       fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/deploy.yml/runs?branch=main&per_page=1`, {
         headers: { Authorization: `token ${token}` }
       })
-      .then(res => res.json())
-      .then(json => {
-        if (!json.workflow_runs || !json.workflow_runs.length) {
-          throw new Error('找不到 workflow run');
-        }
-        const runId = json.workflow_runs[0].id;
-        pollRunStatus(runId, token, progressContainer, progressBarInner);
-      })
-      .catch(err => {
-        console.error(err);
-        alert('無法取得 workflow run：' + err.message);
-      });
+        .then(res => res.json())
+        .then(json => {
+          if (!json.workflow_runs || !json.workflow_runs.length) {
+            throw new Error('找不到 workflow run');
+          }
+          const runId = json.workflow_runs[0].id;
+          pollRunStatus(runId, token, progressContainer, progressBarInner);
+        })
+        .catch(err => {
+          console.error(err);
+          alert('無法取得 workflow run：' + err.message);
+        });
     }
 
     // 3) 輪詢 run 的 status，直到完成
@@ -394,27 +404,28 @@
         fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs/${runId}`, {
           headers: { Authorization: `token ${token}` }
         })
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === 'completed') {
-            clearInterval(interval);
-            bar.style.width = '100%';
-            // 等 5 秒再顯示完成
-            setTimeout(() => {
-              container.style.display = 'none';
-              alert('部署完成！');
-              const url = `https://${owner}.github.io/${repo}/`;
-              window.open(url, '_blank');
-            }, 5000);
-          }
-        })
-        .catch(err => console.error('查詢 run 狀態錯誤：', err));
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === 'completed') {
+              clearInterval(interval);
+              bar.style.width = '100%';
+              // 等 5 秒再顯示完成
+              setTimeout(() => {
+                container.style.display = 'none';
+                alert('部署完成！');
+                const url = `https://${owner}.github.io/${repo}/`;
+                window.open(url, '_blank');
+              }, 5000);
+            }
+          })
+          .catch(err => console.error('查詢 run 狀態錯誤：', err));
       }, 4000);
     }
     window.addEventListener('DOMContentLoaded', () => {
-  markStepDone(0);
-});
+      markStepDone(0);
+    });
 
   </script>
 </body>
+
 </html>
