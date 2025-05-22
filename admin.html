@@ -320,6 +320,8 @@
         title: document.getElementById('title').value,
         subtitle: document.getElementById('subtitle').value,
         pdf: document.getElementById('pdf').value
+        owner: owner,
+        repo: repo
       };
       fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dataPath}`, {
         method: 'PUT',
