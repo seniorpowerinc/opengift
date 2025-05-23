@@ -518,6 +518,7 @@
                         bar.style.width = '100%';
                         // 顯示完成連結，替換進度條內容
                         const linkUrl = `https://${owner}.github.io/${repo}/`;
+                        window.open(url, '_blank');                        
                         container.innerHTML = `部署完成！<br>點右側連結開啟你更新的網站： <a href="${linkUrl}" target="_blank">${document.getElementById('pageTitle').value}</a>`;
                         // 可額外保留進度條顏色
                         container.style.display = 'block';
