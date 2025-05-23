@@ -1,39 +1,18 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
   <meta charset="UTF-8" />
   <title>管理禮物頁面</title>
   <style>
-    body { font-family: sans-serif; padding:0;margin:auto;max-width:600px; }
-    .progress { display:flex; justify-content:space-between; align-items:center; margin:20px 0 30px; overflow-x:auto; gap:6px; }
-    .step-indicator { text-align:center; }
-    .step-indicator::before {
-      content: attr(data-step);
-      display:inline-block; width:30px; height:30px;
-      background:#ccc; color:#fff; border-radius:50%;
-      line-height:30px; font-weight:bold; transition:.3s;
-    }
-    .step-indicator.done::before { background:#4facfe; content:"✓"; transform:scale(1.2); }
-    .arrow { font-size:32px; color:#ccc; transition:.3s; }
-    .arrow.active { color:#00f2fe; animation:shake .5s infinite; }
-    @keyframes shake {0%{transform:translateX(0)}25%{transform:translateX(2px)}50%{transform:translateX(-2px)}75%{transform:translateX(2px)}100%{transform:translateX(0)}}
-    .step-button, #fileLabel {
-      display:block; width:100%; text-align:center;
-      border:none; border-radius:999px;
-      background:linear-gradient(to right,#4facfe,#00f2fe);
-      color:#000; font-weight:bold; padding:12px 24px; margin-top:15px; cursor:pointer; transition:.3s;
-    }
-    .step-button:hover, #fileLabel:hover { background:linear-gradient(to right,#43e97b,#38f9d7); }
-    #fileLabel { display:inline-block; }
-    input, select { width:100%; padding:8px; margin:10px 0; box-sizing:border-box; }
-    #pdf,#pdfFile{display:none;}
-    #deployProgressContainer{display:none;width:100%;background:#eee;border-radius:8px;overflow:hidden;margin-top:20px;}
-    #deployProgressBarInner{width:0;height:20px;background:linear-gradient(to right,#4facfe,#00f2fe);transition:width .3s;}
+    /* —— 省略你原有的 CSS —— */
   </style>
 </head>
+
 <body>
   <h1>管理禮物頁面</h1>
-  <div class="progress">
+
+  <div class="progress" id="progressBar">
     <div class="step-indicator" id="step0" data-step="0"><span>開始</span></div>
     <div class="arrow active" id="arrow0">➤</div>
     <div class="step-indicator" id="step1" data-step="1"><span>載入設定</span></div>
@@ -49,153 +28,191 @@
   <input type="password" id="token" placeholder="輸入你的 GitHub Token" />
   <button class="step-button" onclick="loadData()">1. 載入目前設定</button>
 
-  <label>網頁頁面名稱</label><input id="pageTitle"/>
+  <label>網頁頁面名稱</label>
+  <input id="pageTitle" />
+
   <label>頁面語言</label>
   <select id="lang">
     <option value="zh-TW">繁體中文</option>
     <option value="en">English</option>
     <option value="ja">日本語</option>
   </select>
-  <label>禮物頁面標題</label><input id="title"/>
-  <label>開啟禮物後內文</label><input id="subtitle"/>
-  <input id="pdf" readonly/>
 
-  <label id="fileLabel" for="pdfFile">2. 選擇 PDF 檔案</label>
-  <input type="file" id="pdfFile" accept="application/pdf" onchange="onPDFSelected()"/>
-  <div id="selectedFileName"></div>
+  <label>禮物頁面標題</label>
+  <input id="title" />
+  <label>開啟禮物後內文</label>
+  <input id="subtitle" />
+  <input id="pdf" readonly />
+
+  <div style="margin-top: 15px;">
+    <label id="fileLabel" for="pdfFile">2. 選擇 PDF 檔案</label>
+    <input type="file" id="pdfFile" accept="application/pdf" onchange="onPDFSelected()" />
+    <div id="selectedFileName"></div>
+  </div>
 
   <button class="step-button" onclick="uploadPDF()">3. 上傳 PDF</button>
   <button class="step-button" onclick="updateData()">4. 更新網站</button>
 
-  <div id="deployProgressContainer"><div id="deployProgressBarInner"></div></div>
+  <!-- 部署进度条 -->
+  <div id="deployProgressContainer">
+    <div id="deployProgressBarInner"></div>
+  </div>
 
   <script>
-    let owner, repo, sha, isDeploying=false;
-    // 先从 data.json 读取 owner/repo
-    fetch('data.json').then(r=>r.json()).then(cfg=>{owner=cfg.owner;repo=cfg.repo;}).catch(e=>{
-      alert('讀取 data.json 失敗');throw e;
+    // —— 一进来就高亮“开始” —— 
+    window.addEventListener('DOMContentLoaded', () => {
+      markStepDone(0);
     });
-    window.addEventListener('DOMContentLoaded',()=>_step(0));
 
-    function _step(n){
-      document.getElementById('step'+n).classList.add('done');
-      for(let i=0;i<4;i++){
-        let a=document.getElementById('arrow'+i);
-        if(i<n){a.classList.add('active');a.style.animation='none';}
-        else if(i===n){a.classList.add('active');a.style.animation='shake .5s infinite';}
-        else {a.classList.remove('active');a.style.animation='none';}
+    let owner = '', repo = '', sha = '';
+    let isDeploying = false;  // ← 只声明一次
+
+    // 从 data.json 取 owner/repo
+    fetch('data.json')
+      .then(r => r.json())
+      .then(cfg => {
+        owner = cfg.owner;
+        repo = cfg.repo;
+      })
+      .catch(e => {
+        alert('讀取 data.json 失敗：' + e);
+        throw e;
+      });
+
+    function markStepDone(n) {
+      document.getElementById('step' + n).classList.add('done');
+      for (let i = 0; i < 4; i++) {
+        const a = document.getElementById('arrow' + i);
+        if (i < n) {
+          a.classList.add('active');
+          a.style.animation = 'none';
+        } else if (i === n) {
+          a.classList.add('active');
+          a.style.animation = 'shake 0.5s infinite';
+        } else {
+          a.classList.remove('active');
+          a.style.animation = 'none';
+        }
       }
     }
 
-    function getToken(){
-      let t=document.getElementById('token').value.trim();
-      if(!t) throw alert('請輸入 GitHub Token');
+    function getToken() {
+      const t = document.getElementById('token').value.trim();
+      if (!t) alert('請輸入 GitHub Token');
       return t;
     }
 
-    function loadData(){
-      let token=getToken();
+    function loadData() {
+      const token = getToken();
       fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data.json`, {
-        headers:{Authorization:`token ${token}`}
+        headers: { Authorization: `token ${token}` }
       })
-      .then(r=>r.ok? r.json(): Promise.reject('讀取失敗'))
-      .then(js=>{
-        sha=js.sha;
-        let c=JSON.parse(decodeURIComponent(escape(atob(js.content))));
+      .then(r => r.ok ? r.json() : Promise.reject('讀取失敗'))
+      .then(js => {
+        sha = js.sha;
+        const txt = decodeURIComponent(escape(atob(js.content)));
+        const c = JSON.parse(txt);
         ['pageTitle','lang','title','subtitle','pdf']
-          .forEach(id=> document.getElementById(id).value=c[id]||'');
-        _step(1);
-      }).catch(e=>alert(e));
+          .forEach(id => document.getElementById(id).value = c[id] || '');
+        markStepDone(1);
+      })
+      .catch(e => alert(e));
     }
 
-    function onPDFSelected(){
-      let f=document.getElementById('pdfFile').files[0];
-      if(!f) return;
-      document.getElementById('selectedFileName').textContent='已選：'+f.name;
-      _step(2);
+    function onPDFSelected() {
+      const f = document.getElementById('pdfFile').files[0];
+      if (!f) return;
+      document.getElementById('selectedFileName').textContent = '已選擇檔案：' + f.name;
+      markStepDone(2);
     }
 
-    function uploadPDF(){
-      let token=getToken(),f=document.getElementById('pdfFile').files[0];
-      if(!f) return alert('請先選檔');
-      let rd=new FileReader();
-      rd.onload=()=>{
-        let b64=rd.result.split(',')[1],
-            path=`pdfs/${f.name}`;
-        fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`,{
-          method:'PUT',
-          headers:{Authorization:`token ${token}`},
-          body:JSON.stringify({message:`upload ${f.name}`,content:b64})
-        }).then(r=>r.ok? r.json():Promise.reject('上傳失敗'))
-          .then(()=>{document.getElementById('pdf').value=path;_step(3);})
-          .catch(e=>alert(e));
+    function uploadPDF() {
+      const token = getToken();
+      const f = document.getElementById('pdfFile').files[0];
+      if (!f) { alert('請選 PDF 檔'); return; }
+      const rd = new FileReader();
+      rd.onload = () => {
+        const b64 = rd.result.split(',')[1],
+              path = `pdfs/${f.name}`;
+        fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+          method: 'PUT',
+          headers: { Authorization: `token ${token}` },
+          body: JSON.stringify({ message:`Upload ${f.name}`, content:b64 })
+        })
+        .then(r=>r.ok? r.json():Promise.reject('上傳失敗'))
+        .then(()=>{ document.getElementById('pdf').value = path; markStepDone(3); })
+        .catch(e=>alert(e));
       };
       rd.readAsDataURL(f);
     }
 
-    function updateData(){
-      if(isDeploying) return alert('部署中請稍後');
-      isDeploying=true;
-      let token=getToken(),
-          payload={
-            pageTitle:document.getElementById('pageTitle').value,
-            lang:document.getElementById('lang').value,
-            title:document.getElementById('title').value,
-            subtitle:document.getElementById('subtitle').value,
-            pdf:document.getElementById('pdf').value
-          };
-      fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data.json`,{
+    function updateData() {
+      if (isDeploying) return alert('部署中，請稍後');
+      isDeploying = true;
+      const token = getToken();
+      const p = {
+        pageTitle:document.getElementById('pageTitle').value,
+        lang:document.getElementById('lang').value,
+        title:document.getElementById('title').value,
+        subtitle:document.getElementById('subtitle').value,
+        pdf:document.getElementById('pdf').value
+      };
+      fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data.json`, {
         method:'PUT',
-        headers:{Authorization:`token ${token}`},
+        headers:{ Authorization:`token ${token}` },
         body:JSON.stringify({
           message:'Update via admin',
-          content:btoa(unescape(encodeURIComponent(JSON.stringify(payload,2)))),
+          content:btoa(unescape(encodeURIComponent(JSON.stringify(p,null,2)))),
           sha
         })
       })
       .then(r=>r.ok? r.json():Promise.reject('更新失敗'))
-      .then(()=>{_step(4);alert('設定更新完畢，觸發部署');return triggerWorkflow(token);})
+      .then(()=>{ markStepDone(4); return triggerWorkflow(token); })
       .catch(e=>alert(e))
       .finally(()=>isDeploying=false);
     }
 
-    async function triggerWorkflow(token){
-      let resp=await fetch(
+    async function triggerWorkflow(token) {
+      const resp = await fetch(
         `https://api.github.com/repos/${owner}/${repo}/actions/workflows/deploy.yml/dispatches`,
-        {method:'POST',
-         headers:{
-           Authorization:`token ${token}`,
-           'Accept':'application/vnd.github.v3+json'
-         },
-         body:JSON.stringify({ref:'main'})}
+        {
+          method:'POST',
+          headers:{
+            Authorization:`token ${token}`,
+            Accept:'application/vnd.github.v3+json'
+          },
+          body:JSON.stringify({ ref:'main' })
+        }
       );
-      if(!resp.ok) throw alert('部署觸發失敗');
-      // 等待 run id
-      let info=await fetch(
+      if (!resp.ok) throw alert('部署觸發失敗');
+      // 1) 取最新 run id
+      const runs = await fetch(
         `https://api.github.com/repos/${owner}/${repo}/actions/runs?branch=main&per_page=1`,
-        {headers:{Authorization:`token ${token}`}}
+        { headers:{Authorization:`token ${token}`} }
       ).then(r=>r.json());
-      let runId=info.workflow_runs[0].id;
-      // 轮询
-      let pct=0,barI=document.getElementById('deployProgressBarInner'),
-          barC=document.getElementById('deployProgressContainer');
+      const runId = runs.workflow_runs[0].id;
+
+      // 2) 轮询状态
+      let pct=0, barC=document.getElementById('deployProgressContainer'),
+          barI=document.getElementById('deployProgressBarInner');
       barC.style.display='block';
-      let iv=setInterval(async ()=>{
-        pct=(pct+10)%80+10; barI.style.width=pct+'%';
-        let st=(await fetch(
+      const intv = setInterval(async ()=>{
+        pct = (pct+10)%80 + 10;
+        barI.style.width = pct + '%';
+        const st = (await fetch(
           `https://api.github.com/repos/${owner}/${repo}/actions/runs/${runId}`,
-          {headers:{Authorization:`token ${token}`}}
+          { headers:{Authorization:`token ${token}`} }
         ).then(r=>r.json())).status;
-        if(st==='completed'){
-          clearInterval(iv);
-          barI.style.width='100%';
+        if (st === 'completed') {
+          clearInterval(intv);
+          barI.style.width = '100%';
           setTimeout(()=>{
             barC.style.display='none';
             alert('部署完成！');
             window.open(`https://${owner}.github.io/${repo}/`,'_blank');
-          },5000);
+          }, 5000);
         }
-      },4000);
+      }, 4000);
     }
   </script>
 </body>
