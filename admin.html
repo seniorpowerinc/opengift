@@ -5,7 +5,169 @@
   <meta charset="UTF-8" />
   <title>管理禮物頁面</title>
   <style>
-    /* —— 省略你原有的 CSS —— */
+   body {
+      font-family: sans-serif;
+      padding: 0px;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 0px;
+      display: block;
+    }
+
+    input,
+    textarea,
+    select {
+      display: block;
+      margin: 10px 0;
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+
+    .step-button {
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      color: black;
+      font-weight: bold;
+      font-size: 20px;
+      padding: 12px 24px;
+      margin-top: 15px;
+      width: 100%;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .step-button:hover {
+      background: linear-gradient(to right, #43e97b, #38f9d7);
+    }
+
+    .progress {
+      margin-top: 20px;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 6px;
+    }
+
+    .step-indicator {
+      flex: 0 0 auto;
+      text-align: center;
+      position: relative;
+      margin: 5px;
+    }
+
+    .step-indicator::before {
+      content: attr(data-step);
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      background-color: #ccc;
+      border-radius: 50%;
+      line-height: 30px;
+      color: #fff;
+      font-weight: bold;
+      margin-bottom: 5px;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+
+    .step-indicator.done::before {
+      background-color: #4facfe;
+      content: "✓";
+      transform: scale(1.2);
+    }
+
+    .step-indicator span {
+      display: block;
+      margin-top: 5px;
+      font-size: 20px;
+    }
+
+    .arrow {
+      font-size: 32px;
+      font-weight: bold;
+      color: #ccc;
+      transition: color 0.3s;
+    }
+
+    .arrow.active {
+      color: #00f2fe;
+      animation: shake 0.5s infinite;
+    }
+
+    @keyframes shake {
+      0% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(2px);
+      }
+
+      50% {
+        transform: translateX(-2px);
+      }
+
+      75% {
+        transform: translateX(2px);
+      }
+
+      100% {
+        transform: translateX(0);
+      }
+    }
+
+    #pdf,
+    #pdfFile {
+      display: none;
+    }
+
+    #fileLabel {
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      color: black;
+      font-weight: bold;
+      font-size: 22px;
+      padding: 12px 24px;
+      margin-top: 15px;
+      cursor: pointer;
+      display: inline-block;
+    }
+
+    #fileLabel:hover {
+      background: linear-gradient(to right, #43e97b, #38f9d7);
+    }
+
+    #selectedFileName {
+      font-size: 20px;
+      margin-top: 5px;
+      color: #333;
+    }
+
+    /* 部署进度条容器 */
+    #deployProgressContainer {
+      display: none;
+      width: 100%;
+      background: #eee;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+
+    #deployProgressBarInner {
+      width: 0%;
+      height: 20px;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      transition: width 0.3s;
+    }
   </style>
 </head>
 
