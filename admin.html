@@ -379,6 +379,7 @@
         }
 
         alert("部署已成功觸發，請等待 1~2 分鐘查看結果");
+        waitForWorkflow(token);
       } catch (error) {
         alert("部署錯誤：" + error.message);
       } finally {
