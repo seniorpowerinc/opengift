@@ -239,22 +239,21 @@
       markStepDone(0);
     });
     function markStepDone(stepNumber) {
-      document.getElementById('step' + stepNumber).classList.add('done');
-      for (let i = 0; i < 4; i++) {
-        const arrow = document.getElementById('arrow' + i);
-        if (i < stepNumber) {
-          arrow.classList.add('active');
-          arrow.style.animation = 'none';
-        } else if (i === stepNumber) {
-          arrow.classList.add('active');
-          arrow.style.animation = 'shake 0.5s infinite';
-        } else {
-          arrow.classList.remove('active');
-          arrow.style.animation = 'none';
-        }
-      }
+  document.getElementById('step' + stepNumber).classList.add('done');
+  const arrows = document.querySelectorAll('.arrow');
+  arrows.forEach((arrow, i) => {
+    if (i < stepNumber) {
+      arrow.classList.add('active');
+      arrow.style.animation = 'none';
+    } else if (i === stepNumber) {
+      arrow.classList.add('active');
+      arrow.style.animation = 'shake 0.5s infinite';
+    } else {
+      arrow.classList.remove('active');
+      arrow.style.animation = 'none';
     }
-
+  });
+}
     function onPDFSelected() {
       const file = document.getElementById('pdfFile').files[0];
       if (file) {
