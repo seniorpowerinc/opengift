@@ -344,6 +344,7 @@
         .then(() => {
           markStepDone(4);
           alert('資料更新成功，開始部署...');
+          isDeploying = false;
           return triggerWorkflow(token);
         })
         .finally(() => {
@@ -351,7 +352,7 @@
         });
     }
 
-
+    
     async function triggerWorkflow(token) {
       if (isDeploying) {
         alert("已有部署進行中，請稍後再試");
