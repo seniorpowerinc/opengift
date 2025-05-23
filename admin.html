@@ -235,6 +235,9 @@
         alert('無法讀取 data.json 取得 repo 設定：' + err);
         throw new Error('Missing repo info');
       });
+    window.addEventListener('DOMContentLoaded', () => {
+      markStepDone(0);
+    });
     function markStepDone(stepNumber) {
       document.getElementById('step' + stepNumber).classList.add('done');
       for (let i = 0; i < 4; i++) {
@@ -439,9 +442,7 @@
           .catch(err => console.error('查詢 run 狀態錯誤：', err));
       }, 4000);
     }
-    window.addEventListener('DOMContentLoaded', () => {
-      markStepDone(0);
-    });
+
 
   </script>
 </body>
