@@ -151,6 +151,8 @@
       isDeploying = true;
       const token = getToken();
       const p = {
+        owner: owner, 
+        repo: repo,
         pageTitle:document.getElementById('pageTitle').value,
         lang:document.getElementById('lang').value,
         title:document.getElementById('title').value,
