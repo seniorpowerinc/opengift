@@ -1,188 +1,76 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-
 <head>
   <meta charset="UTF-8" />
   <title>管理禮物頁面</title>
   <style>
-   body {
-      font-family: sans-serif;
-      padding: 0px;
-      max-width: 600px;
-      margin: auto;
-    }
-
-    label {
-      font-weight: bold;
-      margin-top: 0px;
-      display: block;
-    }
-
-    input,
-    textarea,
-    select {
-      display: block;
-      margin: 10px 0;
-      width: 100%;
-      padding: 8px;
-      box-sizing: border-box;
-    }
-
+    body { font-family: sans-serif; padding: 0; max-width: 600px; margin: auto; }
+    label { font-weight: bold; margin-top:0; display:block; }
+    input, select { display:block; width:100%; padding:8px; margin:10px 0; box-sizing:border-box; }
     .step-button {
-      border: none;
-      border-radius: 999px;
+      border:none; border-radius:999px;
       background: linear-gradient(to right, #4facfe, #00f2fe);
-      color: black;
-      font-weight: bold;
-      font-size: 20px;
-      padding: 12px 24px;
-      margin-top: 15px;
-      width: 100%;
-      cursor: pointer;
+      color:black; font-weight:bold; font-size:20px;
+      padding:12px 24px; margin-top:15px; width:100%; cursor:pointer;
       transition: background 0.3s;
     }
-
     .step-button:hover {
       background: linear-gradient(to right, #43e97b, #38f9d7);
     }
-
-    .progress {
-      margin-top: 20px;
-      margin-bottom: 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      gap: 6px;
-    }
-
+    .progress { margin:20px 0 30px; display:flex; align-items:center; gap:6px; overflow-x:auto; }
     .step-indicator {
-      flex: 0 0 auto;
-      text-align: center;
-      position: relative;
-      margin: 5px;
+      text-align:center; position:relative; margin:5px;
     }
-
     .step-indicator::before {
-      content: attr(data-step);
-      display: inline-block;
-      width: 30px;
-      height: 30px;
-      background-color: #ccc;
-      border-radius: 50%;
-      line-height: 30px;
-      color: #fff;
-      font-weight: bold;
-      margin-bottom: 5px;
-      transition: background-color 0.3s, transform 0.3s;
+      content:attr(data-step); display:inline-block;
+      width:30px; height:30px; background:#ccc; border-radius:50%;
+      line-height:30px; color:#fff; font-weight:bold; margin-bottom:5px;
+      transition:background-color 0.3s, transform 0.3s;
     }
-
     .step-indicator.done::before {
-      background-color: #4facfe;
-      content: "✓";
-      transform: scale(1.2);
+      background:#4facfe; content:"✓"; transform:scale(1.2);
     }
-
-    .step-indicator span {
-      display: block;
-      margin-top: 5px;
-      font-size: 20px;
-    }
-
+    .step-indicator span { display:block; margin-top:5px; font-size:14px; }
     .arrow {
-      font-size: 32px;
-      font-weight: bold;
-      color: #ccc;
-      transition: color 0.3s;
+      font-size:32px; font-weight:bold; color:#ccc; transition:color 0.3s;
     }
-
     .arrow.active {
-      color: #00f2fe;
-      animation: shake 0.5s infinite;
+      color:#00f2fe; animation:shake 0.5s infinite;
     }
-
     @keyframes shake {
-      0% {
-        transform: translateX(0);
-      }
-
-      25% {
-        transform: translateX(2px);
-      }
-
-      50% {
-        transform: translateX(-2px);
-      }
-
-      75% {
-        transform: translateX(2px);
-      }
-
-      100% {
-        transform: translateX(0);
-      }
+      0%{transform:translateX(0)}25%{transform:translateX(2px)}50%{transform:translateX(-2px)}
+      75%{transform:translateX(2px)}100%{transform:translateX(0)}
     }
-
-    #pdf,
-    #pdfFile {
-      display: none;
-    }
-
+    #pdf,#pdfFile { display:none; }
     #fileLabel {
-      border: none;
-      border-radius: 999px;
+      display:inline-block; border:none; border-radius:999px;
       background: linear-gradient(to right, #4facfe, #00f2fe);
-      color: black;
-      font-weight: bold;
-      font-size: 22px;
-      padding: 12px 24px;
-      margin-top: 15px;
-      cursor: pointer;
-      display: inline-block;
+      color:black; font-weight:bold; font-size:16px;
+      padding:10px 20px; cursor:pointer; margin-top:15px;
     }
+    #fileLabel:hover { background: linear-gradient(to right, #43e97b, #38f9d7); }
+    #selectedFileName { font-size:14px; margin-top:5px; color:#333; }
 
-    #fileLabel:hover {
-      background: linear-gradient(to right, #43e97b, #38f9d7);
-    }
-
-    #selectedFileName {
-      font-size: 20px;
-      margin-top: 5px;
-      color: #333;
-    }
-
-    /* 部署进度条容器 */
+    /* 部署进度条 */
     #deployProgressContainer {
-      display: none;
-      width: 100%;
-      background: #eee;
-      border-radius: 8px;
-      overflow: hidden;
-      margin-top: 20px;
+      display:none; width:100%; background:#eee; border-radius:8px;
+      overflow:hidden; margin-top:20px;
     }
-
     #deployProgressBarInner {
-      width: 0%;
-      height: 20px;
+      width:0; height:20px;
       background: linear-gradient(to right, #4facfe, #00f2fe);
       transition: width 0.3s;
     }
   </style>
 </head>
-
 <body>
   <h1>管理禮物頁面</h1>
 
   <div class="progress" id="progressBar">
-    <div class="step-indicator" id="step0" data-step="0"><span>開始</span></div>
-    <div class="arrow active" id="arrow0">➤</div>
-    <div class="step-indicator" id="step1" data-step="1"><span>載入設定</span></div>
-    <div class="arrow" id="arrow1">➤</div>
-    <div class="step-indicator" id="step2" data-step="2"><span>選擇檔案</span></div>
-    <div class="arrow" id="arrow2">➤</div>
-    <div class="step-indicator" id="step3" data-step="3"><span>上傳 PDF</span></div>
-    <div class="arrow" id="arrow3">➤</div>
+    <div class="step-indicator" id="step0" data-step="0"><span>開始</span></div><div class="arrow active" id="arrow0">➤</div>
+    <div class="step-indicator" id="step1" data-step="1"><span>載入設定</span></div><div class="arrow" id="arrow1">➤</div>
+    <div class="step-indicator" id="step2" data-step="2"><span>選擇檔案</span></div><div class="arrow" id="arrow2">➤</div>
+    <div class="step-indicator" id="step3" data-step="3"><span>上傳 PDF</span></div><div class="arrow" id="arrow3">➤</div>
     <div class="step-indicator" id="step4" data-step="4"><span>更新網站</span></div>
   </div>
 
@@ -206,7 +94,7 @@
   <input id="subtitle" />
   <input id="pdf" readonly />
 
-  <div style="margin-top: 15px;">
+  <div>
     <label id="fileLabel" for="pdfFile">2. 選擇 PDF 檔案</label>
     <input type="file" id="pdfFile" accept="application/pdf" onchange="onPDFSelected()" />
     <div id="selectedFileName"></div>
@@ -215,169 +103,167 @@
   <button class="step-button" onclick="uploadPDF()">3. 上傳 PDF</button>
   <button class="step-button" onclick="updateData()">4. 更新網站</button>
 
-  <!-- 部署进度条 -->
-  <div id="deployProgressContainer">
-    <div id="deployProgressBarInner"></div>
-  </div>
+  <div id="deployProgressContainer"><div id="deployProgressBarInner"></div></div>
 
   <script>
-    // —— 一进来就高亮“开始” —— 
-    window.addEventListener('DOMContentLoaded', () => {
-      markStepDone(0);
+    let owner='', repo='', sha='';
+    const dataPath='data.json';
+    // 讀取 owner/repo
+    fetch(dataPath).then(r=>r.json()).then(d=>{
+      owner=d.owner; repo=d.repo;
+    }).catch(e=>{
+      alert('無法讀取 data.json 取得 repo 設定：'+e);
+      throw e;
     });
-
-    let owner = '', repo = '', sha = '';
-    let isDeploying = false;  // ← 只声明一次
-
-    // 从 data.json 取 owner/repo
-    fetch('data.json')
-      .then(r => r.json())
-      .then(cfg => {
-        owner = cfg.owner;
-        repo = cfg.repo;
-      })
-      .catch(e => {
-        alert('讀取 data.json 失敗：' + e);
-        throw e;
-      });
-
-    function markStepDone(n) {
-      document.getElementById('step' + n).classList.add('done');
-      for (let i = 0; i < 4; i++) {
-        const a = document.getElementById('arrow' + i);
-        if (i < n) {
-          a.classList.add('active');
-          a.style.animation = 'none';
-        } else if (i === n) {
-          a.classList.add('active');
-          a.style.animation = 'shake 0.5s infinite';
-        } else {
-          a.classList.remove('active');
-          a.style.animation = 'none';
-        }
+    // 步驟點亮
+    function markStepDone(n){
+      document.getElementById('step'+n).classList.add('done');
+      for(let i=0;i<5;i++){
+        const a=document.getElementById('arrow'+i);
+        if(!a) continue;
+        if(i< n ){ a.classList.add('active'); a.style.animation='none'; }
+        else if(i===n){ a.classList.add('active'); a.style.animation='shake 0.5s infinite'; }
+        else{ a.classList.remove('active'); a.style.animation='none'; }
       }
     }
-
-    function getToken() {
-      const t = document.getElementById('token').value.trim();
-      if (!t) alert('請輸入 GitHub Token');
+    // 上傳 PDF
+    function onPDFSelected(){
+      const f=document.getElementById('pdfFile').files[0];
+      if(f){ document.getElementById('selectedFileName').textContent='已選擇檔案：'+f.name; markStepDone(2); }
+    }
+    // 取得 token
+    function getToken(){
+      const t=document.getElementById('token').value.trim();
+      if(!t){alert('請輸入 GitHub Token'); throw 'no token';}
       return t;
     }
-
-    function loadData() {
-      const token = getToken();
-      fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data.json`, {
-        headers: { Authorization: `token ${token}` }
-      })
-      .then(r => r.ok ? r.json() : Promise.reject('讀取失敗'))
-      .then(js => {
-        sha = js.sha;
-        const txt = decodeURIComponent(escape(atob(js.content)));
-        const c = JSON.parse(txt);
-        ['pageTitle','lang','title','subtitle','pdf']
-          .forEach(id => document.getElementById(id).value = c[id] || '');
+    // 載入 data.json
+    function loadData(){
+      const t=getToken();
+      fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dataPath}`,{
+        headers:{Authorization:`token ${t}`}
+      }).then(r=>r.ok? r.json():Promise.reject('讀取失敗'))
+      .then(d=>{
+        sha=d.sha;
+        const raw=atob(d.content), arr=Uint8Array.from(raw,c=>c.charCodeAt(0));
+        const obj=JSON.parse(new TextDecoder('utf-8').decode(arr));
+        document.getElementById('pageTitle').value=obj.pageTitle||'';
+        document.getElementById('lang').value=obj.lang||'zh-TW';
+        document.getElementById('title').value=obj.title||'';
+        document.getElementById('subtitle').value=obj.subtitle||'';
+        document.getElementById('pdf').value=obj.pdf||'';
         markStepDone(1);
-      })
-      .catch(e => alert(e));
+        alert('載入完成');
+      }).catch(e=>alert(e));
     }
-
-    function onPDFSelected() {
-      const f = document.getElementById('pdfFile').files[0];
-      if (!f) return;
-      document.getElementById('selectedFileName').textContent = '已選擇檔案：' + f.name;
-      markStepDone(2);
-    }
-
-    function uploadPDF() {
-      const token = getToken();
-      const f = document.getElementById('pdfFile').files[0];
-      if (!f) { alert('請選 PDF 檔'); return; }
-      const rd = new FileReader();
-      rd.onload = () => {
-        const b64 = rd.result.split(',')[1],
-              path = `pdfs/${f.name}`;
-        fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-          method: 'PUT',
-          headers: { Authorization: `token ${token}` },
-          body: JSON.stringify({ message:`Upload ${f.name}`, content:b64 })
-        })
-        .then(r=>r.ok? r.json():Promise.reject('上傳失敗'))
-        .then(()=>{ document.getElementById('pdf').value = path; markStepDone(3); })
-        .catch(e=>alert(e));
+    // 上傳 PDF 到 GitHub
+    function uploadPDF(){
+      const t=getToken(), f=document.getElementById('pdfFile').files[0];
+      if(!f){alert('請先選擇 PDF');return;}
+      const r=new FileReader();
+      r.onload=()=>{
+        const b64=r.result.split(',')[1], path=`pdfs/${f.name}`;
+        fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`,{
+          method:'PUT',
+          headers:{Authorization:`token ${t}`},
+          body:JSON.stringify({message:`Upload ${f.name}`,content:b64})
+        }).then(r=>r.ok?r.json():Promise.reject('上傳失敗'))
+        .then(()=>{
+          document.getElementById('pdf').value=path;
+          markStepDone(3);
+          alert('PDF 上傳成功');
+        }).catch(e=>alert(e));
       };
-      rd.readAsDataURL(f);
+      r.readAsDataURL(f);
     }
-
-    function updateData() {
-      if (isDeploying) return alert('部署中，請稍後');
-      isDeploying = true;
-      const token = getToken();
-      const p = {
-        owner: owner, 
-        repo: repo,
+    let deploying=false;
+    // 更新 data.json 並觸發 workflow
+    function updateData(){
+      if(deploying) return alert('已有部署中，請稍後');
+      deploying=true;
+      const t=getToken();
+      const p={
+        owner,repo,
         pageTitle:document.getElementById('pageTitle').value,
         lang:document.getElementById('lang').value,
         title:document.getElementById('title').value,
         subtitle:document.getElementById('subtitle').value,
         pdf:document.getElementById('pdf').value
       };
-      fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data.json`, {
+      fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${dataPath}`,{
         method:'PUT',
-        headers:{ Authorization:`token ${token}` },
+        headers:{Authorization:`token ${t}`},
         body:JSON.stringify({
-          message:'Update via admin',
+          message:'Update data.json from admin.html',
           content:btoa(unescape(encodeURIComponent(JSON.stringify(p,null,2)))),
           sha
         })
+      }).then(r=>r.ok?r.json():Promise.reject('更新失敗'))
+      .then(()=>{
+        markStepDone(4);
+        alert('資料更新成功，開始部署...');
+        triggerWorkflow(t);
       })
-      .then(r=>r.ok? r.json():Promise.reject('更新失敗'))
-      .then(()=>{ markStepDone(4); return triggerWorkflow(token); })
       .catch(e=>alert(e))
-      .finally(()=>isDeploying=false);
+      .finally(()=>deploying=false);
     }
-
-    async function triggerWorkflow(token) {
-      const resp = await fetch(
-        `https://api.github.com/repos/${owner}/${repo}/actions/workflows/deploy.yml/dispatches`,
-        {
-          method:'POST',
-          headers:{
-            Authorization:`token ${token}`,
-            Accept:'application/vnd.github.v3+json'
-          },
-          body:JSON.stringify({ ref:'main' })
-        }
-      );
-      if (!resp.ok) throw alert('部署觸發失敗');
-      // 1) 取最新 run id
-      const runs = await fetch(
-        `https://api.github.com/repos/${owner}/${repo}/actions/runs?branch=main&per_page=1`,
-        { headers:{Authorization:`token ${token}`} }
-      ).then(r=>r.json());
-      const runId = runs.workflow_runs[0].id;
-
-      // 2) 轮询状态
-      let pct=0, barC=document.getElementById('deployProgressContainer'),
-          barI=document.getElementById('deployProgressBarInner');
-      barC.style.display='block';
-      const intv = setInterval(async ()=>{
-        pct = (pct+10)%80 + 10;
-        barI.style.width = pct + '%';
-        const st = (await fetch(
-          `https://api.github.com/repos/${owner}/${repo}/actions/runs/${runId}`,
-          { headers:{Authorization:`token ${token}`} }
-        ).then(r=>r.json())).status;
-        if (st === 'completed') {
-          clearInterval(intv);
-          barI.style.width = '100%';
-          setTimeout(()=>{
-            barC.style.display='none';
-            alert('部署完成！');
-            window.open(`https://${owner}.github.io/${repo}/`,'_blank');
-          }, 5000);
-        }
-      }, 4000);
+    // 觸發 GitHub Actions workflow_dispatch
+    async function triggerWorkflow(token){
+      try{
+        const res=await fetch(
+          `https://api.github.com/repos/${owner}/${repo}/actions/workflows/deploy.yml/dispatches`,
+          {method:'POST',
+           headers:{
+             Authorization:`token ${token}`,
+             Accept:'application/vnd.github.v3+json'
+           },
+           body:JSON.stringify({ref:'main'})
+          }
+        );
+        if(!res.ok) throw '部署觸發失敗';
+        // 顯示進度條
+        await waitForWorkflow(token);
+      }catch(e){ alert(e); }
     }
+    // 輪詢部署狀態並更新進度條
+    function waitForWorkflow(token){
+      return new Promise(resolve=>{
+        const cont=document.getElementById('deployProgressContainer');
+        const bar =document.getElementById('deployProgressBarInner');
+        cont.style.display='block'; bar.style.width='0';
+        let runId=0;
+        // 先取最新 run
+        fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/deploy.yml/runs?branch=main&per_page=1`,
+          {headers:{Authorization:`token ${token}`}}
+        ).then(r=>r.json()).then(j=>{
+          runId=j.workflow_runs[0].id;
+          let pct=0;
+          const iv=setInterval(()=>{
+            pct=(pct+10)%80+10; bar.style.width=pct+'%';
+            fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs/${runId}`,
+              {headers:{Authorization:`token ${token}`}})
+            .then(r=>r.json())
+            .then(d=>{
+              if(d.status==='completed'){
+                clearInterval(iv);
+                bar.style.width='100%';
+                setTimeout(()=>{
+                  cont.style.display='none';
+                  alert('部署完成！');
+                  window.open(`https://${owner}.github.io/${repo}/`,'_blank');
+                  resolve();
+                },5000);
+              }
+            });
+          },4000);
+        }).catch(e=>{
+          alert('無法取得 workflow run：'+e);
+          resolve();
+        });
+      });
+    }
+    // 初始
+    window.addEventListener('DOMContentLoaded',()=>markStepDone(0));
   </script>
 </body>
 </html>
