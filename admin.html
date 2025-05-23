@@ -151,7 +151,7 @@
             color: #333;
         }
 
-        /* 部署进度条容器 */
+        /* 部署進度條容器 */
         #deployProgressContainer {
             display: none;
             width: 100%;
@@ -180,17 +180,17 @@
         <div class="arrow" id="arrow1">➤</div>
         <div class="step-indicator" id="step2" data-step="2"><span>選擇檔案</span></div>
         <div class="arrow" id="arrow2">➤</div>
-        <div class="step-indicator" id="step3" data-step="3"><span>上傳 PDF</span></div>
+        <div class="step-indicator" id="step3" data-step="3"><span>上傳 PDF</span></div>
         <div class="arrow" id="arrow3">➤</div>
         <div class="step-indicator" id="step4" data-step="4"><span>更新網站</span></div>
     </div>
 
     <label>GitHub Token</label>
-    <input type="password" id="token" placeholder="輸入你的 GitHub Token" />
-    <button id="loadButton" class="step-button" onclick="loadData()">1. 載入目前設定</button>
+    <input type="password" id="token" placeholder="輸入你的 GitHub Token" />
+    <button id="loadButton" class="step-button" onclick="loadData()">1. 載入目前設定</button>
 
     <label>網頁頁面名稱</label>
-    <input id="pageTitle" />
+    <input id="pageTitle" />
 
     <label>頁面語言</label>
     <select id="lang">
@@ -200,23 +200,23 @@
     </select>
 
     <label>禮物頁面標題</label>
-    <input id="title" />
+    <input id="title" />
     <label>開啟禮物後內文</label>
-    <input id="subtitle" />
-    <input id="pdf" readonly />
+    <input id="subtitle" />
+    <input id="pdf" readonly />
 
-    <div style="margin-top: 15px;">
-        <label id="fileLabel" for="pdfFile">2. 選擇 PDF 檔案</label>
-        <input type="file" id="pdfFile" accept="application/pdf" onchange="onPDFSelected()" />
+    <div style="margin-top: 15px;">
+        <label id="fileLabel" for="pdfFile">2. 選擇 PDF 檔案</label>
+        <input type="file" id="pdfFile" accept="application/pdf" onchange="onPDFSelected()" />
         <div id="selectedFileName"></div>
     </div>
 
-    <button id="uploadButton" class="step-button" onclick="uploadPDF()">3. 上傳 PDF</button>
-    <!-- 部署进度条（移到更新按钮上方） -->
+    <button id="uploadButton" class="step-button" onclick="uploadPDF()">3. 上傳 PDF</button>
+    <!-- 部署進度條（移動到更新按鈕上方） -->
     <div id="deployProgressContainer">
         <div id="deployProgressBarInner"></div>
     </div>
-    <button id="updateButton" class="step-button" onclick="updateData()">4. 更新網站</button>
+    <button id="updateButton" class="step-button" onclick="updateData()">4. 更新網站</button>
 
     <script>
         let owner = '';
@@ -225,32 +225,32 @@
         let isDeploying = false;
         let currentStep = 0;
 
-        // 初始化 repo
+        // 初始化 repo
         fetch('data.json')
             .then(res => res.json())
             .then(data => { owner = data.owner; repo = data.repo; })
-            .catch(err => { alert('無法讀取 data.json：' + err); throw new Error('Missing repo info'); });
+            .catch(err => { alert('無法讀取 data.json：' + err); throw new Error('Missing repo info'); });
 
-        // 更新按鈕狀態
+        // 更新按鈕狀態
         function updateButtonStates() {
+            // 載入設定按鈕
             document.getElementById('loadButton').disabled = currentStep !== 0;
+
             const fileLabel = document.getElementById('fileLabel');
-            // 步驟2 前，檔案相關禁用
-            if (currentStep < 2) {
-                fileLabel.classList.add('disabled-label');
-                document.getElementById('uploadButton').disabled = true;
-            }
-            // 已選檔案
-            if (currentStep === 2) {
+            const uploadBtn = document.getElementById('uploadButton');
+
+            // 步驟1 完成後，可選擇檔案 (currentStep >=1 且 <3)；其他時候禁用
+            if (currentStep >= 1 && currentStep < 3) {
                 fileLabel.classList.remove('disabled-label');
-                document.getElementById('uploadButton').disabled = false;
-            }
-            // 上傳後禁用
-            if (currentStep >= 3) {
+            } else {
                 fileLabel.classList.add('disabled-label');
-                document.getElementById('uploadButton').disabled = true;
             }
-            document.getElementById('updateButton').disabled = currentStep !== 3;
+
+            // 上傳按鈕只在 currentStep === 2 時可用
+            uploadBtn.disabled = (currentStep !== 2);
+
+            // 更新網站按鈕只在 currentStep === 3 時可用
+            document.getElementById('updateButton').disabled = (currentStep !== 3);
         }
 
         function markStepDone(stepNumber) {
@@ -270,7 +270,7 @@
 
         function getToken() {
             const t = document.getElementById('token').value.trim();
-            if (!t) { alert('請輸入 GitHub Token'); throw new Error('Token is required'); }
+            if (!t) { alert('請輸入 GitHub Token'); throw new Error('Token is required'); }
             return t;
         }
 
@@ -307,7 +307,7 @@
         function uploadPDF() {
             const token = getToken();
             const file = document.getElementById('pdfFile').files[0];
-            if (!file) { alert('請選擇要上傳的 PDF'); return; }
+            if (!file) { alert('請選擇要上傳的 PDF'); return; }
             const reader = new FileReader();
             reader.onload = () => {
                 const b64 = reader.result.split(',')[1];
@@ -322,7 +322,7 @@
                         currentStep = 3;
                         markStepDone(3);
                         updateButtonStates();
-                        alert('PDF 上傳成功');
+                        alert('PDF 上傳成功');
                     })
                     .catch(err => alert(err));
             };
@@ -363,53 +363,8 @@
                     { method: 'POST', headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' }, body: JSON.stringify({ ref: 'main' }) }
                 );
                 if (!response.ok) throw new Error('部署觸發失敗');
-                alert('部署已成功觸發，1 秒後顯示進度條並開始監控進度...');
+                alert('部署已成功觸發，1 秒後顯示進度條並開始監控進度...');
                 waitForWorkflow(token);
             } catch (error) {
-                alert('部署錯誤：' + error.message);
-                isDeploying = false;
-            }
-        }
+                alert('部
 
-        function waitForWorkflow(token) {
-            const progressContainer = document.getElementById('deployProgressContainer');
-            const progressBarInner = document.getElementById('deployProgressBarInner');
-            setTimeout(() => {
-                progressContainer.style.display = 'block';
-                progressBarInner.style.width = '0';
-                fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/deploy.yml/runs?branch=main&per_page=1`, { headers: { Authorization: `token ${token}` } })
-                    .then(res => res.json())
-                    .then(json => {
-                        if (!json.workflow_runs.length) throw new Error('找不到 workflow run');
-                        pollRunStatus(json.workflow_runs[0].id, token, progressContainer, progressBarInner);
-                    })
-                    .catch(err => alert('無法取得 workflow run：' + err.message));
-            }, 1000);
-        }
-
-        function pollRunStatus(runId, token, container, bar) {
-            let pseudo = 0;
-            const interval = setInterval(() => {
-                pseudo = (pseudo + 10) % 80 + 10;
-                bar.style.width = pseudo + '%';
-                fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs/${runId}`, { headers: { Authorization: `token ${token}` } })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.status === 'completed') {
-                            clearInterval(interval);
-                            bar.style.width = '100%';
-                            setTimeout(() => {
-                                container.style.display = 'none';
-                                alert('部署完成！');
-                                window.open(`https://${owner}.github.io/${repo}/`, '_blank');
-                                isDeploying = false;
-                            }, 5000);
-                        }
-                    })
-                    .catch(err => console.error('查詢 run 錯誤：', err));
-            }, 4000);
-        }
-    </script>
-</body>
-
-</html>
