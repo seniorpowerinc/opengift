@@ -1,12 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma"        content="no-cache" />
-  <meta http-equiv="Expires"       content="0" />
-  <title id="pageTitle"> </title>
+  <meta charset="UTF-8"/><meta http-equiv="Cache-Control" content="no-cache"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title id="pageTitle"></title>
   <style>
     body {
       background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 50%, #c5cae9 100%);
@@ -189,25 +186,18 @@
 </head>
 <script>
 const bust = Date.now();
-fetch(`data.json?t=${bust}`)
-  .then(response => response.json())
-  .then(data => {
-      // 設定 <html lang=...>
-      if (data.lang) {
-        document.documentElement.lang = data.lang;
-      }
-
-      document.title = data.pageTitle || 'Gift for you';
-      document.getElementById('mainTitle').textContent = data.title || '';
-      document.getElementById('message').textContent = data.subtitle || '';
-      window.pdfUrl = data.pdf || '';
-    })
-    .catch(error => {
-      console.error('Error loading data.json:', error);
-    });
+fetch('data.json')
+      .then(r=>r.json())
+      .then(d=>{
+        document.documentElement.lang = d.lang;
+        document.title = d.pageTitle;
+        document.getElementById('mainTitle').textContent = d.title;
+        document.getElementById('message').textContent = d.subtitle;
+        window.pdfUrl = d.pdf;
+      }).catch(console.error);
 </script>
 <body>
-  <h1 class="header" id="mainTitle"> </h1>
+  <h1 id="mainTitle"> </h1>
   <div class="main-content">
     <div class="gift-container gift-animate" id="gift-box" tabindex="0" role="button" aria-label="Open the gift">
       <img class="gift-top" src="images/box-top.png" alt="boxtop" id="giftTop">
