@@ -356,31 +356,42 @@
         // 上傳 PDF
         function uploadPDF() {
             const token = getToken();
-            const file  = document.getElementById('pdfFile').files[0];
+            const file = document.getElementById('pdfFile').files[0];
             if (!file) {
                 alert('請選擇要上傳的 PDF');
                 return;
             }
 
+            // 上傳開始時提示並暫時禁用下一步
+            alert('PDF 上傳中，請稍等');
+            document.getElementById('uploadButton').disabled = true;
+            document.getElementById('updateButton').disabled = true;
+
             const reader = new FileReader();
             reader.onload = () => {
                 const base64 = reader.result.split(',')[1];
-                const path   = `pdfs/${file.name}`;
+                const path = `pdfs/${file.name}`;
 
                 fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
                     method: 'PUT',
-                    headers:{ Authorization: `token ${token}` },
+                    headers: { Authorization: `token ${token}` },
                     body: JSON.stringify({ message: `Upload ${file.name}`, content: base64 })
                 })
-                .then(res => res.ok ? res.json() : Promise.reject('上傳失敗'))
-                .then(() => {
-                    document.getElementById('pdf').value = path;
-                    currentStep = 3;
-                    markStepDone(3);
-                    updateButtonStates();
-                    alert('PDF 上傳成功');
-                })
-                .catch(err => alert('上傳失敗：' + err));
+                    .then(res => res.ok ? res.json() : Promise.reject('上傳失敗'))
+                    .then(() => {
+                        document.getElementById('pdf').value = path;
+                        currentStep = 3;
+                        markStepDone(3);
+                        updateButtonStates();
+                        // 上傳完成後提示並啟用更新按鈕
+                        alert('PDF 上傳完畢，可以更新網站了');
+                    })
+                    .catch(err => {
+                        alert('上傳失敗：' + err);
+                        // 若失敗，允許重新上傳
+                        currentStep = 2;
+                        updateButtonStates();
+                    });
             };
             reader.readAsDataURL(file);
         }
