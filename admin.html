@@ -407,14 +407,12 @@
                         document.getElementById('pdf').value = path;
                         currentStep = 3;
                         markStepDone(3);
-                        updateButtonStates();
                         // 開始輪詢確認 GitHub 已接收檔案
                         pollPdfCommit(path, token);
                     })
                     .catch(err => {
                         alert('上傳失敗：' + err);
                         currentStep = 2;
-                        updateButtonStates();
                     });
             };
             reader.readAsDataURL(file);
