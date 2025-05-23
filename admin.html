@@ -499,12 +499,12 @@
                     if (data.status === 'completed') {
                         clearInterval(interval);
                         bar.style.width = '100%';
-                        setTimeout(() => {
-                            container.style.display = 'none';
-                            alert('部署完成！');
-                            window.open(`https://${owner}.github.io/${repo}/`, '_blank');
-                            isDeploying = false;
-                        }, 5000);
+                        // 顯示完成連結，替換進度條內容
+                        const linkUrl = `https://${owner}.github.io/${repo}/`;
+                        container.innerHTML = `部署完成！<br>點右側連結開啟你更新的網站： <a href="${linkUrl}" target="_blank">${document.getElementById('pageTitle').value}</a>`;
+                        // 可額外保留進度條顏色
+                        container.style.display = 'block';
+                        isDeploying = false;
                     }
                 })
                 .catch(console.error);
